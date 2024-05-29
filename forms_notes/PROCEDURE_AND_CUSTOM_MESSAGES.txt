@@ -1,0 +1,42 @@
+--------------------------------------------------------------------------------------------------------------
+Step 1: Create a Trigger for new customer ID.
+--------------------------------------------------------------------------------------------------------------
+-- Trigger For Auto ID --
+
+CREATE OR REPLACE TRIGGER NEW_CUSTOMER_TRIGGER 
+before INSERT ON SUMMIT_ADF.S_CUSTOMER FOR EACH row
+BEGIN 
+  IF inserting THEN IF :NEW."ID" IS NULL THEN
+  SELECT S_CUSTOMER_ID.nextval INTO :NEW."ID" FROM dual;
+END IF;
+END IF;
+END;
+/
+--------------------------------------------------------------------------------------------------------------
+Step 2: Create a procedure to insert data.
+--------------------------------------------------------------------------------------------------------------
+-- Procedure to insert data --
+
+CREATE OR REPLACE PROCEDURE insert_new_customers
+(p_name IN VARCHAR2, p_phone IN NUMBER) IS
+BEGIN
+INSERT INTO s_customer(NAME, PHONE)
+VALUES(p_name, p_phone);
+COMMIT;
+END;
+/
+--------------------------------------------------------------------------------------------------------------
+Step 3: Create a Form module, use a button trigger to invoke the procedure.
+--------------------------------------------------------------------------------------------------------------
+-- Forms Button Code --
+
+BEGIN
+    insert_new_customers(:S_CUSTOMER.NAME,:S_CUSTOMER.PHONE);
+
+    :SYSTEM.MESSAGE_LEVEL := '10';
+    UP;
+    IF NOT FORM_SUCCESS THEN
+        MESSAGE('Data Inserted');
+    END IF;
+    :SYSTEM.MESSAGE_LEVEL := '0';
+END;
